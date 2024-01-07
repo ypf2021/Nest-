@@ -1,42 +1,47 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, Headers, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, Headers, HttpCode, Req, Res } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import * as svgCaptcha from 'svg-captcha'
 
+import type { createUserBody } from './type'
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) { }
 
-  @Get()
-  findAll(@Query() query) {
-    console.log('请求参数', query);
-    return {
-      code: 200,
-      message: query.name
-    }
-  } 
-
-  // get 请求 动态参数
-  @Get(':id')
-  findOne(@Param() param) {
-    console.log('请求参数', param);
-    return {
-      code: 200,
-      message: param.id
-    }
+  @Get('code')
+  createCaptcha(@Req() req, @Res() res) {
+    const captcha = svgCaptcha.create({
+      size: 4,
+      fontSize: 50, //文字大小
+      width: 100,  //宽度
+      height: 34,  //高度
+      background: '#cc9966',  //背景颜色
+    })
+    req.session.code = captcha.text
+    console.log('setSession')
+    res.type('image/svg+xml')
+    res.send(captcha.data)
   }
 
-    // post 请求 @Body 中可以加入特定的参数名
-    @Post()
-    @HttpCode(500)
-    Create(@Body('age') age) {
-      console.log('请求参数age', age);
-      return {
-        code: 200,
-        message: age
+  @Post('create')
+  createUser(@Body() body: createUserBody, @Req() req, @Res() res){
+    console.log(body)
+    // res.type('application/json')
+    const {code, password, userName} = body
+    let responseContent = {}
+    if(password != '' && userName != '' && code != ''){
+      console.log('session/code', req.session.code.toLocaleLowerCase(), '/',code.toLocaleLowerCase())
+      if(code.toLocaleLowerCase() !== req.session.code.toLocaleLowerCase()){
+        responseContent = {msg: '验证码错误', code: '-1'}
+      } else {
+        responseContent = {msg: '创建成功', code: '0000'}
       }
+    } else {
+      responseContent = {msg: '信息输入不完整', code: '-1'}
     }
-
+    res.send(JSON.stringify(responseContent))
+  }
 }
 
 // @Request()	                  req          

@@ -4,7 +4,7 @@ import { CreateDemoDto } from './dto/create-demo.dto';
 import { UpdateDemoDto } from './dto/update-demo.dto';
 
 @Controller({
-  path: 'dmeo',
+  path: 'demo',
 })
 export class DemoController {
   constructor(private readonly demoService: DemoService) {}
