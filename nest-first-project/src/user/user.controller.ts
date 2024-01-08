@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, Headers, HttpCode, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, Headers, HttpCode, Req, Res, Inject } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -7,7 +7,17 @@ import * as svgCaptcha from 'svg-captcha'
 import type { createUserBody } from './type'
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(
+    // 非语法糖方式 通过@Inject(key) 注入
+    @Inject('yanpengfei') private readonly userService: UserService,
+    // 自定义值注入
+    @Inject('JD') private readonly AppStore: string[],
+    // 工厂函数注入
+    @Inject('FactoryService') private readonly factory: number,
+
+    // 注入config service
+    @Inject('Config') private readonly config: any,
+  ) { }
 
   @Get('code')
   createCaptcha(@Req() req, @Res() res) {
@@ -22,6 +32,21 @@ export class UserController {
     console.log('setSession')
     res.type('image/svg+xml')
     res.send(captcha.data)
+  }
+
+  @Get('AppStore')
+  getAppStore() {
+    return this.AppStore
+  }
+
+  @Get('Factory')
+  getFactory() {
+    return this.factory
+  }
+
+  @Get('BaseApi')
+  getBaseApi() {
+    return this.config
   }
 
   @Post('create')
